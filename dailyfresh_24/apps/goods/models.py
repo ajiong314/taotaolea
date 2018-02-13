@@ -117,6 +117,3 @@ class IndexPromotionBanner(BaseModel):
 
     def __str__(self):
         return self.name
-
-class indexpicture(BaseModel):
-    pass
