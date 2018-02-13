@@ -1,14 +1,26 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.views.generic import View
 # Create your views here.
 
-def register(request):
 
-    # return HttpResponse('cs')
+class RegisterView(View):
 
-    if request.method == 'GET':
+    def get(self,request):
+
         return render(request, 'register.html')
 
-    if request.method == 'POST':
+    def post(self,request):
 
-        return HttpResponse('chuliqingqiu')
+        return HttpResponse('ceshi')
+
+# def register(request):
+#
+#     # return HttpResponse('cs')
+#
+#     if request.method == 'GET':
+#         return render(request, 'register.html')
+#
+#     if request.method == 'POST':
+#
+#         return HttpResponse('chuliqingqiu')
