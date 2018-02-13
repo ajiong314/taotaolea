@@ -5,4 +5,10 @@ from django.http import HttpResponse
 def register(request):
 
     # return HttpResponse('cs')
-    return render(request, 'register.html')
+
+    if request.method == 'GET':
+        return render(request, 'register.html')
+
+    if request.method == 'POST':
+
+        return HttpResponse('chuliqingqiu')
