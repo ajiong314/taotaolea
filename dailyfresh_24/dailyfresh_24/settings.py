@@ -35,6 +35,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = (
     'django.contrib.admin',
+    # 用户系统包auth
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -86,7 +87,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'dailyfresh_24',
-        'HOST':'192.168.182.139', # MySQL数据库地址
+        'HOST':'192.168.182.141', # MySQL数据库地址
         'PORT':'3306',
         'USER':'root',
         'PASSWORD':'mysql'
