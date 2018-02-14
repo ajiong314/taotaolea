@@ -5,7 +5,15 @@ from django.core.urlresolvers import reverse
 import re
 from users.models import User
 from django import db
+from django.conf import settings
 # Create your views here.
+
+
+class ActiveView(View):
+
+    def get(self, request, token):
+
+        pass
 
 
 class RegisterView(View):
@@ -40,6 +48,8 @@ class RegisterView(View):
 
         try:
 
+            # 新创建的用户名存到数据库 create-user就是专门用数据库新创建的
+
             user = User.objects.create_user(name, email, pwd)
 
         except db.IntegrityError:
@@ -50,6 +60,28 @@ class RegisterView(View):
         user.is_active = False
 
         user.save()
+
+        token = user.generate_active_token()
+
+
+
+        # send_mail()
+        # user 是通过models中的user类来创建的的对象，调用生成token的方法
+
+
+        # def send_active_email(email, name, token):
+        #     """封装发送邮件方法"""
+
+
+        from django.core.mail import send_mail
+        subject = "淘淘乐用户激活"  # 标题
+        body = ""  # 文本邮件体
+        sender = settings.EMAIL_FROM  # 发件人
+        receiver = [email]  # 接收人
+        html_body = '<h1>尊敬的用户 %s, 感谢您注册淘淘乐！</h1>' \
+                    '<br/><p>请点击此链接激活您的帐号<a href="http://127.0.0.1:8000/users/active/%s">' \
+                    'http://127.0.0.1:8000/users/active/%s</a></p>' % (name, token, token)
+        send_mail(subject, body, sender, receiver, html_message=html_body)
 
 
         return HttpResponse('ceshi')
