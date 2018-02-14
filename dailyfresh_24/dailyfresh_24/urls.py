@@ -21,4 +21,6 @@ urlpatterns = [
 #   配置请求路径
     url(r'^users/', include('users.urls', namespace= 'users'))
 
+
+
 ]

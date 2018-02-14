@@ -6,14 +6,50 @@ import re
 from users.models import User
 from django import db
 from django.conf import settings
+from celery_tasks.tasks import send_active_email
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from itsdangerous import SignatureExpired
 # Create your views here.
+
+class LoginView(View):
+
+    def get(self,request):
+        return render(request, 'login.html')
+
+    def post(self,request):
+
+        pass
 
 
 class ActiveView(View):
 
     def get(self, request, token):
 
-        pass
+        serializer = Serializer(settings.SECRET_KEY, 3600)
+
+        try:
+
+            result = serializer.load(token)
+
+        except SignatureExpired:
+
+            return HttpResponse('邮箱验证已经过期')
+
+        user_id = result.get('confirm')
+
+        try:
+
+            user = User.objects.get(id = user_id)
+
+        except User.DoesnotExit:
+
+            return HttpResponse('用户不存在')
+
+        user.is_active = True
+
+        user.save()
+
+        return HttpResponse('chenggong')
 
 
 class RegisterView(View):
@@ -63,28 +99,31 @@ class RegisterView(View):
 
         token = user.generate_active_token()
 
+        send_active_email.delay(email, name, token)
+
 
 
         # send_mail()
         # user 是通过models中的user类来创建的的对象，调用生成token的方法
 
 
-        # def send_active_email(email, name, token):
-        #     """封装发送邮件方法"""
+        # # def send_active_email(email, name, token):
+        # #     """封装发送邮件方法"""
+        #
+        #
+        # from django.core.mail import send_mail
+        # subject = "淘淘乐用户激活"  # 标题
+        # body = ""  # 文本邮件体
+        # sender = settings.EMAIL_FROM  # 发件人
+        # receiver = [email]  # 接收人
+        # html_body = '<h1>尊敬的用户 %s, 感谢您注册淘淘乐！</h1>' \
+        #             '<br/><p>请点击此链接激活您的帐号<a href="http://127.0.0.1:8000/users/active/%s">' \
+        #             'http://127.0.0.1:8000/users/active/%s</a></p>' % (name, token, token)
+        # send_mail(subject, body, sender, receiver, html_message=html_body)
 
 
-        from django.core.mail import send_mail
-        subject = "淘淘乐用户激活"  # 标题
-        body = ""  # 文本邮件体
-        sender = settings.EMAIL_FROM  # 发件人
-        receiver = [email]  # 接收人
-        html_body = '<h1>尊敬的用户 %s, 感谢您注册淘淘乐！</h1>' \
-                    '<br/><p>请点击此链接激活您的帐号<a href="http://127.0.0.1:8000/users/active/%s">' \
-                    'http://127.0.0.1:8000/users/active/%s</a></p>' % (name, token, token)
-        send_mail(subject, body, sender, receiver, html_message=html_body)
-
-
-        return HttpResponse('ceshi')
+        # return HttpResponse('ceshi')
+        return redirect(reverse('users:login'))
 
 # def register(request):
 #
