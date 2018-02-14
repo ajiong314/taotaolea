@@ -9,6 +9,7 @@ from django.conf import settings
 from celery_tasks.tasks import send_active_email
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import SignatureExpired
+from django.contrib.auth import authenticate,login
 # Create your views here.
 
 class LoginView(View):
@@ -18,7 +19,26 @@ class LoginView(View):
 
     def post(self,request):
 
-        pass
+        name = request.POST.get('username')
+        pwd = request.POST.get('pwd')
+
+        if not all([name, pwd]):
+
+            return render(request, 'login.html')
+
+        user = authenticate(user_name = name, password = pwd)
+
+        if user is None:
+
+            return render(request, 'login.html', {'errmsg': '用户名或密码错误'})
+
+        if user.is_active == False:
+
+            return render(request, 'login.html', {'errmsg': '用户未激活'})
+
+        login(request, user)
+
+        return HttpResponse('登陆成功')
 
 
 class ActiveView(View):
