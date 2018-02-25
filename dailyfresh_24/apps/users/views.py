@@ -9,15 +9,42 @@ from django.conf import settings
 from celery_tasks.tasks import send_active_email
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import SignatureExpired
-from django.contrib.auth import authenticate,login
+from django.contrib.auth import authenticate,login,logout
+from utils.view import LoginRequired
 # Create your views here.
+
+class AddressView(LoginRequired, View):
+
+    def get(self,request):
+
+        # if not request.user.is_authenticated():
+        #     return redirect(reverse("users:login"))
+        # else:
+            return render(request, 'user_center_site.html')
+
+    def post(self,request):
+
+        pass
+
+
+class LogoutView(View):
+
+    def get(self,request):
+
+        logout(request)
+
+        return redirect(reverse('users:login'))
+
 
 class LoginView(View):
 
+
     def get(self,request):
+
         return render(request, 'login.html')
 
     def post(self,request):
+
 
         name = request.POST.get('username')
         pwd = request.POST.get('pwd')
@@ -26,20 +53,32 @@ class LoginView(View):
 
             return render(request, 'login.html')
 
-        user = authenticate(user_name = name, password = pwd)
+        user = authenticate(username = name, password = pwd)
 
         if user is None:
+
 
             return render(request, 'login.html', {'errmsg': '用户名或密码错误'})
 
         if user.is_active == False:
 
+
             return render(request, 'login.html', {'errmsg': '用户未激活'})
 
         login(request, user)
 
-        return HttpResponse('登陆成功')
+        remembered = request.POST.get('remembered')
 
+        if remembered != 'on':
+            print(11)
+            request.session.set_expiry(0)
+            print(110)
+        else:
+            print(22)
+            request.session.set_expiry(60*60*24*10)
+            print(220)
+
+        return HttpResponse('登陆成功')
 
 class ActiveView(View):
 
