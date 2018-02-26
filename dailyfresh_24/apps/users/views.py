@@ -3,28 +3,100 @@ from django.http import HttpResponse
 from django.views.generic import View
 from django.core.urlresolvers import reverse
 import re
-from users.models import User
+from users.models import User, Address
 from django import db
 from django.conf import settings
 from celery_tasks.tasks import send_active_email
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import SignatureExpired
 from django.contrib.auth import authenticate,login,logout
-from utils.view import LoginRequired
+from utils.view import LoginRequiredMixin
+from django_redis import get_redis_connection
+from goods.models import GoodsSKU
+
 # Create your views here.
 
-class AddressView(LoginRequired, View):
+
+class UserInfoView(LoginRequiredMixin,View):
+
+    def get(self, request):
+        # 拿到用户
+        user = request.user
+        # 查找地址信息,如果为空会出现异常
+        try:
+
+            address = Address.objects.filter(user=user).order_by("-create_time")[0]
+
+        except Address.DoesNotExist:
+
+            address = None
+
+        # 查询最近浏览的商品
+        redis_conn = get_redis_connection('default')
+
+        sku_ids = redis_conn.lrange('history_%s' % user.id, 0, 4)
+        sku_list = []
+        for sku_id in sku_ids:
+            sku = GoodsSKU.objects.get(id=sku_id)
+            sku_list.append(sku)
+        # 构造上下文
+        context ={
+            'address':address,
+            'sku_list': sku_list
+        }
+        # 渲染模板
+
+        return render(request, 'user_center_info.html', context)
+
+
+class AddressView(LoginRequiredMixin, View):
 
     def get(self,request):
+        # 获取登陆的用户名
+        user = request.user
+        # 查找相应的地址信息
+        # address = Address.objects.filter(user=user).order_by('-create_time')[0]
+        # address = user.address_set.order_by('-create_time')[0]
+        # latest默认倒序排列
+        try:
+            address = user.address_set.latest('create_time')
+        except Address.DoesNotExist:
+            address = None
+
+        # 构造上下文
+        context = {
+
+            'user':user,
+            'address': address
+        }
+        # 渲染模板
 
         # if not request.user.is_authenticated():
         #     return redirect(reverse("users:login"))
         # else:
-            return render(request, 'user_center_site.html')
+        return render(request, 'user_center_site.html',context)
 
     def post(self,request):
 
-        pass
+        # 接收数据
+        recv_name = request.POST.get('recv_name')
+        addr = request.POST.get('addr')
+        zip_code = request.POST.get('zip_code')
+        recv_mobile = request.POST.get('recv_mobile')
+
+        # 分析数据
+        if all([recv_name, addr, zip_code, recv_mobile]):
+            Address.objects.create(
+                user=request.user,
+                receiver_name = recv_name,
+                receiver_mobile = recv_mobile,
+                detail_addr = addr,
+                zip_code = zip_code
+            )
+        # 保存数据
+
+        return redirect(reverse('users:address'))
+
 
 
 class LogoutView(View):
@@ -34,6 +106,7 @@ class LogoutView(View):
         logout(request)
 
         return redirect(reverse('users:login'))
+        # return redirect(reverse('goods:index'))
 
 
 class LoginView(View):
@@ -42,6 +115,7 @@ class LoginView(View):
     def get(self,request):
 
         return render(request, 'login.html')
+
 
     def post(self,request):
 
@@ -70,15 +144,29 @@ class LoginView(View):
         remembered = request.POST.get('remembered')
 
         if remembered != 'on':
-            print(11)
-            request.session.set_expiry(0)
-            print(110)
-        else:
-            print(22)
-            request.session.set_expiry(60*60*24*10)
-            print(220)
 
-        return HttpResponse('登陆成功')
+            request.session.set_expiry(0)
+
+        else:
+
+            request.session.set_expiry(60*60*24*10)
+
+        next = request.GET.get('next')
+        # print(next)
+
+        if next is None:
+
+            return redirect(reverse('goods:index'))
+        else:
+            return redirect(next)
+
+
+
+
+
+
+
+
 
 class ActiveView(View):
 
@@ -182,7 +270,7 @@ class RegisterView(View):
 
 
         # return HttpResponse('ceshi')
-        return redirect(reverse('users:login'))
+        return redirect(reverse('goods:index'))
 
 # def register(request):
 #

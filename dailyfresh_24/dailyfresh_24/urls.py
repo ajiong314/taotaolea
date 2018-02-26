@@ -19,7 +19,9 @@ from django.contrib import admin
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
 #   配置请求路径
-    url(r'^users/', include('users.urls', namespace= 'users'))
+    url(r'^users/', include('users.urls', namespace= 'users')),
+
+    url(r'^', include('goods.urls', namespace= 'goods'))
 
 
 

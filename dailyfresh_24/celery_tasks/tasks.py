@@ -9,7 +9,7 @@ from django.conf import settings
 from django.core.mail import send_mail
 # 第一个参数制定路径，第二个参数制定redis数据库
 
-app = Celery('celery_tasks.tasks',broker='redis://192.168.182.142:6379/4')
+app = Celery('celery_tasks.tasks',broker='redis://192.168.182.144:6379/4')
 
 
 @app.task

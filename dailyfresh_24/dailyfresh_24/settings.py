@@ -87,7 +87,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'dailyfresh_24',
-        'HOST':'192.168.182.142', # MySQL数据库地址
+        'HOST':'192.168.182.144', # MySQL数据库地址
         'PORT':'3306',
         'USER':'root',
         'PASSWORD':'mysql'
@@ -132,7 +132,7 @@ EMAIL_FROM = '天天生鲜<dailyfreshzxc@yeah.net>' # 发件人抬头
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://192.168.182.142:6379/5",
+        "LOCATION": "redis://192.168.182.144:6379/5",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
