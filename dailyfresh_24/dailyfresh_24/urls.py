@@ -16,7 +16,11 @@ Including another URLconf
 from django.conf.urls import include, url
 from django.contrib import admin
 
+
 urlpatterns = [
+
+    url(r'^tinymce/', include('tinymce.urls')),
+
     url(r'^admin/', include(admin.site.urls)),
 #   配置请求路径
     url(r'^users/', include('users.urls', namespace= 'users')),

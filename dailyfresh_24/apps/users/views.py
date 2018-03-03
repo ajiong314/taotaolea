@@ -121,6 +121,7 @@ class LoginView(View):
 
 
         name = request.POST.get('username')
+
         pwd = request.POST.get('pwd')
 
         if not all([name, pwd]):
@@ -130,7 +131,6 @@ class LoginView(View):
         user = authenticate(username = name, password = pwd)
 
         if user is None:
-
 
             return render(request, 'login.html', {'errmsg': '用户名或密码错误'})
 
@@ -162,12 +162,6 @@ class LoginView(View):
 
 
 
-
-
-
-
-
-
 class ActiveView(View):
 
     def get(self, request, token):
@@ -196,7 +190,7 @@ class ActiveView(View):
 
         user.save()
 
-        return HttpResponse('chenggong')
+        return redirect(reversed('goods:index'))
 
 
 class RegisterView(View):

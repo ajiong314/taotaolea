@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'tinymce',
     'users',
     'goods',
     'order',
@@ -87,7 +88,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'dailyfresh_24',
-        'HOST':'192.168.182.144', # MySQL数据库地址
+        'HOST':'192.168.182.129', # MySQL数据库地址
         'PORT':'3306',
         'USER':'root',
         'PASSWORD':'mysql'
@@ -132,7 +133,7 @@ EMAIL_FROM = '天天生鲜<dailyfreshzxc@yeah.net>' # 发件人抬头
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://192.168.182.144:6379/5",
+        "LOCATION": "redis://192.168.115.182.129/5",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
@@ -145,4 +146,17 @@ SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
 
 
+DEFAULT_FILE_STORAGE = 'utils.fastdfs.storage.FastDFSStorage'
 LOGIN_URL = '/users/login'
+
+CLIENT_CONF = os.path.join(BASE_DIR, 'utils/fastdfs/client.conf')
+
+SERVER_IP = 'http://192.168.115.100:8080/'
+
+TINYMCE_DEFAULT_CONFIG = {
+
+        'theme': 'advanced', # 丰富样式
+        'width': 600,
+        'height': 400,
+
+}
