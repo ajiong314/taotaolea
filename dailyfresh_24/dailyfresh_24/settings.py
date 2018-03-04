@@ -46,6 +46,7 @@ INSTALLED_APPS = (
     'goods',
     'order',
     'cart',
+    'haystack',
 
 )
 
@@ -133,7 +134,7 @@ EMAIL_FROM = '天天生鲜<dailyfreshzxc@yeah.net>' # 发件人抬头
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://192.168.115.182.129/5",
+        "LOCATION": "redis://192.168.182.129/5",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
@@ -151,7 +152,7 @@ LOGIN_URL = '/users/login'
 
 CLIENT_CONF = os.path.join(BASE_DIR, 'utils/fastdfs/client.conf')
 
-SERVER_IP = 'http://192.168.115.100:8080/'
+SERVER_IP = 'http://192.168.182.129:8080/'
 
 TINYMCE_DEFAULT_CONFIG = {
 
@@ -160,3 +161,14 @@ TINYMCE_DEFAULT_CONFIG = {
         'height': 400,
 
 }
+HAYSTACK_CONNECTIONS = {
+
+  'default': {
+      # 使用whoosh引擎：提示，如果不需要使用jieba框架实现分词，就使用whoosh_backend
+      'ENGINE': 'haystack.backends.whoosh_cn_backend.WhooshEngine',
+      # 索引文件路径
+      'PATH': os.path.join(BASE_DIR, 'whoosh_index'),
+  }
+}
+# 当添加、修改、删除数据时，自动生成索引
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'

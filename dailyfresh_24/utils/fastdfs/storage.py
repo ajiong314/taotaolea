@@ -64,7 +64,6 @@ class FastDFSStorage(Storage):
         return False
 
     def url(self, name):
-        print('jintianshigehaotianqi今天是个好天气，jintianshigehaotianqi今天是个好天气，jintianshigehaotianqi今天是个好天气，')
         return (self.server_ip + name)
 
     """

@@ -4,12 +4,116 @@ from goods.models import GoodsCategory, Goods, GoodsSKU, GoodsImage, IndexGoodsB
 from django.core.cache import cache
 from django_redis import  get_redis_connection
 from django.core.urlresolvers import reverse
+from django.core.paginator import Paginator,EmptyPage
+import json
 
 # Create your views here.
-class DetailView(View):
+
+
+class BaseCartView(View):
+
+    def get_cart_num(self,request):
+        if request.user.is_authenticated():
+        #     创建redis对象
+            redis_conn = get_redis_connection("default")
+
+        #     读取数据,拿出所有数据局
+        #     先得到用户的id信息,根据用户的id信息查询出对应的cart——num信息
+            user_id = request.user.id
+            cart_dict = redis_conn.hgetall('cart_%s' % user_id)
+
+        # 遍历字典，得到数量
+            for val in cart_dict.values():
+
+                cart_num += int(val)
+
+        else:
+            cart_json = request.COOKIES.get('cart')
+
+            if cart_json is not None:
+                cart_dict =json.load(cart_json)
+
+            else:
+                cart_dict = {}
+
+            for val in cart_dict.values():
+
+                cart_num += val
+
+        return  cart_num
+
+
+
+class ListView(BaseCartView):
+
+    def get(self, request, category_id, page_num):
+
+        sort = request.GET.get('sort', 'default')
+
+        # 查询商品分类，category_id对应的
+        try:
+
+            category = GoodsCategory.objects.get(id = category_id)
+        except Goods.DoesnotException:
+            return redirect(reverse('user:index'))
+        # 查询所有商品的分类
+        categorys = GoodsCategory.objects.all()
+
+        # 查询新品推荐
+        new_SKUS = GoodsSKU.objects.filter(category=category).order_by('-create_time')[:2]
+
+        # 查询商品分类category_id对应的SKU信息并且排序
+        if sort == 'price':
+            skus = GoodsCategory.objects.filter(category=category).order_by('price')
+
+        elif sort == 'hot':
+            skus = GoodsCategory.objects.filter(category=category).order_by('-sales')
+
+        else:
+
+            skus = GoodsCategory.objects.filter(category=category)
+            sort = 'default'
+
+        # 查询购物车信
+        cart_num = self.get_cart_num(request)
+        # 如果是登录用户,读取购物车数据
+
+        # 查询分页数据 paginator page
+        # paginator = [GoodsSKU, GoodsSKU, GoodsSKU, GoodsSKU, GoodsSKU, ...]
+        # paginator 的两个参数分别是 查寻出来的一个列表 ， 每一页展示几条内容
+        paginator = paginator(skus, 2)
+
+        # 获取用户要看的那一页 page_skus = [GoodsSKU, GoodsSKU]
+        # 根据从网页接受的参数判断用户要看那一夜
+        page_num = int(page_num)
+        try:
+            page_skus = paginator.page(page_num)
+        except:
+            page_skus = paginator.page(1)    #如果出现错误的话就给默认成第一页
+
+        # 获取页码列表
+        page_list = paginator.page_range
+
+        # 构造上下文
+        context ={
+            'category':category,
+            'categorys':categorys,
+            'new_SKUS':new_SKUS,
+            'skus':skus,
+            'page_list':page_list,
+            'sort':sort,
+            'page_skus': page_skus,
+            'cart_num': cart_num
+        }
+
+        return render(request,'list.html', context)
+
+
+class DetailView(BaseCartView):
 
 
     def get(self, request, sku_id):
+        print(1111)
 
         """查询详情页数据,渲染模板"""
 
@@ -48,29 +152,14 @@ class DetailView(View):
 
         # 查询购物车信息
 
-        cart_num = 0
+        cart_num = self.get_cart_num(request)
         # 如果是登录用户,读取购物车数据
-        if request.user.is_authenticated():
-            # 创建连接到redis的对象
-            redis_conn = get_redis_connection('default')
-
-            # 调用hgetall(), 读取所有的购物车数据
-            user_id = request.user.id
-            cart_dict = redis_conn.hgetall('cart_%s' % user_id)
-
-            # 遍历cart_dict,取出数量,累加求和
-            # 说明:hgetall()返回的字典,里面的key和value是字节类型(bytes)的,所以在计算和比较时需要对类型进行处理
-            for val in cart_dict.values():
-                cart_num += int(val)
-
-
-
-            # 删除重复的sku_id
-            redis_conn.lrem('history_%s' % user_id, 0, sku_id)
-            # 记录浏览信息
-            redis_conn.lpush('history_%s' % user_id, sku_id)
-            # 最多保存五条记录
-            redis_conn.ltrim('history_%s' % user_id, 0, 4)
+        # 删除重复的sku_id
+        redis_conn.lrem('history_%s' % user_id, 0, sku_id)
+        # 记录浏览信息
+        redis_conn.lpush('history_%s' % user_id, sku_id)
+        # 最多保存五条记录
+        redis_conn.ltrim('history_%s' % user_id, 0, 4)
 
         # 构造上下文
         context = {
@@ -81,13 +170,14 @@ class DetailView(View):
             'other_skus': other_skus,
             'cart_num': cart_num
         }
+        print(666)
 
         # 渲染模板
         return render(request, 'detail.html', context)
 
 
 
-class IndexView(View):
+class IndexView(BaseCartView):
 
     def get(self, request):
 
@@ -128,23 +218,11 @@ class IndexView(View):
             # context_dict  存-->  string   读-->  context_dict
             cache.set('index_page_data', context, 3600)
 
-        cart_num = 0
+        cart_num = self.get_cart_num(request)
 
-        if request.user.is_authenticated():
-        #     创建redis对象
-            redis_conn = get_redis_connection("default")
 
-        #     读取数据,拿出所有数据局
-        #     先得到用户的id信息,根据用户的id信息查询出对应的cart——num信息
-            user_id = request.user.id
-            cart_dict = redis_conn.hgetall('cart_%s' % user_id)
-
-        # 遍历字典，得到数量
-            for val in cart_dict.values():
-
-                cart_num += int(val)
         # 更新购物和数据
-            context.update(cart_num = cart_num)
+        context.update(cart_num = cart_num)
         # 渲染模板
         return render(request, 'index.html', context)
 

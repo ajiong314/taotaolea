@@ -12,7 +12,7 @@
                 <span></span>
                 <ul class="subnav">
                     {% for category in categorys %}
-                        <li><a href="#" class="{{ category.logo }}">{{ category.name }}</a></li>
+                        <li><a href="{%url 'goods:list' category.id 1 %}" class="{{ category.logo }}">{{ category.name }}</a></li>
                     {% endfor %}
                 </ul>
             </div>
@@ -148,11 +148,8 @@
             };
 {#            // 使用ajax向后端发送数据#}
 {#            $.post("/cart/add", req_data, function (response_data) {#}
-{#                // 根据response_data中的code决定处理效果#}
-{#                if (1 == response_data.code) {#}
-{#                    // 用户未登录#}
-{#                    window.location.href = "/users/login";  // 让页面跳转到登录页面#}
-{#                } else if (0 == response_data.code) {#}
+//{#
+                      if (0 == response_data.code) {#}
 {#                    // 添加到购物车成功动画#}
 {#                    $(".add_jump").css({'left':$add_y+80,'top':$add_x+10,'display':'block'});#}
 {##}

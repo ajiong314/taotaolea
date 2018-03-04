@@ -7,8 +7,9 @@ django.setup()
 from celery import Celery
 from django.conf import settings
 from django.core.mail import send_mail
-from goods.models import GoodsCategory, Goods, GoodsSKU, GoodsImage, IndexGoodsBanner, IndexCategoryGoodsBanner, IndexPromotionBanner
 from django.template import loader
+from goods.models import GoodsCategory, Goods, GoodsSKU, GoodsImage, IndexGoodsBanner, IndexCategoryGoodsBanner, IndexPromotionBanner
+
 
 # 第一个参数制定路径，第二个参数制定redis数据库
 

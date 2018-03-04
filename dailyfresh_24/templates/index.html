@@ -23,7 +23,7 @@
 		<ul class="subnav fl">
 			{% for goodscategory in goodscategorys%}
 
-				<li><a href="#model{{ forloop.counter }}" class="{{goodscategory.logo}}">{{goodscategory.name}}</a></li>
+				<li><a href="{%url 'goods:list' category.id 1 %}" class="{{goodscategory.logo}}">{{goodscategory.name}}</a></li>
 
 			{% endfor %}
 		</ul>
