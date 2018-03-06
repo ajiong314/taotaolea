@@ -151,14 +151,56 @@ class LoginView(View):
 
             request.session.set_expiry(60*60*24*10)
 
+            # 在界面跳转之前,将cookie中的购物车信息合并到redis
+            cart_json = request.COOKIES.get('cart')
+            if cart_json is not None:
+                # 从cookie中得到的购物车字典,key是string,value是int
+                cart_dict_cookie = json.loads(cart_json)
+            else:
+                cart_dict_cookie = {}
+
+            # 查询redis中的购物车信息
+            redis_conn = get_redis_connection('default')
+            # 通过django_redis从redis中读取的购物车字典,key和value都是bytes类型的
+            cart_dict_redis = redis_conn.hgetall('cart_%s' % user.id)
+
+            # 遍历cart_dict_cookie,取出其中的sku_id和count信息,存储到redis
+            for sku_id, count in cart_dict_cookie.items():
+
+                # 将string转bytes
+                # 提醒 : 在做计算和比较时,需要记住类型统一
+                sku_id = sku_id.encode()
+                if sku_id in cart_dict_redis:
+                    origin_count = cart_dict_redis[sku_id]
+                    count += int(origin_count)
+
+                    # 在这里合并有可能造成库存不足
+                    # sku = GoodsSKU.objects.get(id=sku_id)
+                    # if count > sku.stock:
+                    # pass # 具体如何处理,只要不影响登录的正常流程即可
+
+                # 保存合并的数据到redis
+                cart_dict_redis[sku_id] = count
+
+            # 一次性向redis中新增多条记录
+            if cart_dict_redis:
+                redis_conn.hmset('cart_%s' % user.id, cart_dict_redis)
+
+
+                # 在界面跳转以前,需要判断登录之后跳转的地方.如果有next就跳转到next指向的地方,反之,跳转到主页
+                # http://127.0.0.1:8000/users/login?next=/users/info
+
         next = request.GET.get('next')
         # print(next)
 
         if next is None:
 
-            return redirect(reverse('goods:index'))
+            response = redirect(reverse('goods:index'))
         else:
-            return redirect(next)
+            response = redirect(next)
+
+        response.delete_cookie('cart')
+        return response
 
 
 

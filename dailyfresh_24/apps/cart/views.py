@@ -5,6 +5,118 @@ from goods.models import GoodsSKU
 from django_redis import get_redis_connection
 import json
 # Create your views here.
+class DeleteCartView(View):
+
+    def post(self,request):
+        """删除购物车记录:一次删除一条"""
+
+        def post(self, request):
+
+            # 接收参数：sku_id
+
+            sku_id = request.POST.get('sku_id')
+            # 校验参数：not，判断是否为空
+
+            if not sku_id:
+                return JsonResponse({'code':1, 'message':'sku_id为空'})
+
+            # 判断sku_id是否合法
+            try:
+                sku = GoodsSKU.objects.get(id=sku_id)
+            except GoodsSKU.DoesnotExit:
+                return JsonResponse({'code':2 , 'message': '商品不存在'})
+
+            # 判断用户是否登录
+            if request.user.is_authenticated():
+
+                # 如果用户登陆，删除redis中购物车数据
+                redis_conn = get_redis_connection('default')
+                user_id = request.user.id
+                redis_conn.hdel('cart_%s' % user_id, sku_id)
+
+
+            # 如果用户未登陆，删除cookie中购物车数据
+            else:
+                    # 删除字典中某个key及对应的内容
+                cart_json = request.COOKIES.get('cart')
+                if cart_json is not None:
+                    cart_dict = json.load(cart_json)
+                    del cart_dict[sku_id]
+                    new_cart_json = json.dump(cart_dict)
+                # else:
+                #     cart_dict = {}
+                response = JsonResponse({'code': 0, 'message': '删除成功'})
+                    # 删除结果写入cookie
+                response.set_cookie('cart',new_cart_json)
+
+                return response
+            return JsonResponse({'code': 0, 'message': '删除成功'})
+
+
+class UpdateCartView(View):
+
+    def post(self, request):
+
+        """+ - 手动输入"""
+
+        # 获取参数：sku_id, count
+        sku_id = request.POST.get('sku_id')
+        count = request.POST.get('count')
+
+        # 校验参数all()
+        if not all([sku_id,count]):
+
+            return JsonResponse({'code':1 , 'message':'参数不对'})
+
+        # 判断商品是否存在
+        try:
+
+            sku = GoodsSKU.objects.get(id=sku_id)
+        except GoodsSKU.DoesnotExit:
+            return JsonResponse({'code':2, 'message':'商品不存在'})
+
+
+        # 判断count是否是整数
+        try:
+            count = int(count)
+        except Exception:
+            return JsonResponse({'code':3, 'message':'商品数量不对'})
+
+
+        # 判断库存
+        if count > sku.stock:
+            return JsonResponse({'code':4, 'message':'商品库存不足'})
+
+        # 判断用户是否登陆
+        if request.user.is_authenticated():
+
+            # 如果用户登陆，将修改的购物车数据存储到redis中
+            redis_conn = get_redis_connection('default')
+            user_id = request.user.id
+            # 因为我们设计的接口是幂等的风格.传入的count就是用户最后要记录的商品的数量
+            redis_conn.hset('cart_%s' % user_id, sku_id, count)
+            return JsonResponse({'code': 3, 'message': '商品数量不对'})
+
+
+
+        else:
+            # 如果用户未登陆，将修改的购物车数据存储到cookie中
+            cart_json = request.COOKIES.get('cart')
+            if cart_json is not None:
+                cart_dict = json.load(cart_json)
+            else:
+                cart_dict = {}
+            # 因为我们设计的接口是幂等的风格.传入的count就是用户最后要记录的商品的数量
+            cart_dict[sku_id] = count
+
+            # 把cart_dict转成最新的json字符串
+            new_cart_json = json.dump(cart_dict)
+
+            # 更新cookie中的购物车信息
+
+            response = JsonResponse({'code': 0, 'message': '更新购物车成功'})
+            response.set_cookie('cart', new_cart_json)
+            return response
 
 
 class CartInfoView(View):

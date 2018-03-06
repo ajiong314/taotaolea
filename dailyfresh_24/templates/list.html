@@ -38,7 +38,7 @@
 				<ul>
 					{% for new_SKU in new_SKUS %}
 					<li>
-						<a href="{ url 'goods:detail'}"><img src="{{new_SKU.default.url}}"></a>
+						<a href="{ url 'goods:detail'}"><img src="{{new_SKU.default_image.url}}"></a>
 						<h4><a href="{ url 'goods:detail'}">进口柠檬{{new_SKU.name}}</a></h4>
 						<div class="prize">￥{{new_SKU.price}}</div>
 					</li>
@@ -50,15 +50,15 @@
 
 		<div class="r_wrap fr clearfix">
 			<div class="sort_bar">
-				<a href="{% url 'goods:list' category.id 1 %}?sort=default" {% if sort =='default' %}class="active"{% endif %}>默认</a>
-				<a href="{% url 'goods:list' category.id 1 %}?sort=price" {% if sort =='default' %}class="active"{% endif %}>价格</a>
-				<a href="{% url 'goods:list' category.id 1 %}?sort=hot" {% if sort =='default' %}class="active"{% endif %}>人气</a>
+				<<a href="{% url 'goods:list' category.id 1 %}?sort=default"{% if sort == 'default' %} class="active" {% endif %}>默认</a>
+				<a href="{% url 'goods:list' category.id 1 %}?sort=price" {% if sort == 'price' %}class="active"{% endif %}>价格</a>
+				<a href="{% url 'goods:list' category.id 1 %}?sort=hot" {% if sort == 'hot' %}class="active"{% endif %}>人气</a>
 			</div>
 
 			<ul class="goods_type_list clearfix">
 				{% for page_sku in page_skus%}
 				<li>
-					<a href="{% url 'goods:detail' page_sku.id %}"><img src="{{page_sku.default.url}}"></a>
+					<a href="{% url 'goods:detail' page_sku.id %}"><img src="{{page_sku.default_image.url}}"></a>
 					<h4><a href="{% url 'goods:detail' page_sku.id %}">{{page_sku.name}}</a></h4>
 					<div class="operate">
 						<span class="prize">￥{{page_sku.price }}</span>
@@ -77,7 +77,7 @@
 				{% endif %}
 
 				{% for index in page_list %}
-				<a href="{% url 'goods:list' category.id index %}?sort={{sort}}" {% if index==page_skus.number %}class="active"{% endif%}>{{index}}</a>
+				<a href="{% url 'goods:list' category.id index %}?sort={{sort}}" {% if index == page_skus.number %}class="active"{% endif%}>{{index}}</a>
 				{% endfor %}
 
 				{% if page_skus.has_next %}

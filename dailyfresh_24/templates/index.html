@@ -23,7 +23,7 @@
 		<ul class="subnav fl">
 			{% for goodscategory in goodscategorys%}
 
-				<li><a href="{%url 'goods:list' category.id 1 %}" class="{{goodscategory.logo}}">{{goodscategory.name}}</a></li>
+				<li><a href="{% url 'goods:list' goodscategory.id 1 %}" class="{{goodscategory.logo}}">{{goodscategory.name}}</a></li>
 
 			{% endfor %}
 		</ul>
@@ -56,7 +56,7 @@
 
 					<span>|</span>
 					{% for titlebanner in category.titlebanners %}
-					<a href="#">{{ titlebanner.sku.name }}</a>
+					<a href="{% url 'goods:detail' titlebanner.sku.id %}">{{ titlebanner.sku.name }}</a>
 					{% endfor %}
 				</div>
 				<a href="#" class="goods_more fr" id="fruit_more">查看更多 ></a>
@@ -68,8 +68,8 @@
 				<ul class="goods_list fl">
 					{% for imagebanner in category.imagebanners %}
 						<li>
-							<h4><a href="detail.html">{{ imagebanner.sku.name }}</a></h4>
-							<a href="detail.html"><img src="{{ imagebanner.sku.default_image.url }}"></a>
+							<h4><a href="{% url 'goods:detail' imagebanner.sku.id %}">{{ imagebanner.sku.name }}</a></h4>
+							<a href="{% url 'goods:detail' imagebanner.sku.id %}"><img src="{{ imagebanner.sku.default_image.url }}"></a>
 							<div class="prize">¥ {{ imagebanner.sku.price }}</div>
 						</li>
 					{% endfor %}

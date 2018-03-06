@@ -146,27 +146,27 @@
                 count: $("#num_show").val(),
                 csrfmiddlewaretoken: "{{ csrf_token }}"
             };
-{#            // 使用ajax向后端发送数据#}
-{#            $.post("/cart/add", req_data, function (response_data) {#}
+            // 使用ajax向后端发送数据#}
+            $.post("/cart/add", req_data, function (response_data) {
 //{#
-                      if (0 == response_data.code) {#}
-{#                    // 添加到购物车成功动画#}
-{#                    $(".add_jump").css({'left':$add_y+80,'top':$add_x+10,'display':'block'});#}
-{##}
-{#                    $(".add_jump").stop().animate({#}
-{#                        'left': $to_y+7,#}
-{#                        'top': $to_x+7},#}
-{#                        "fast", function() {#}
-{#                            $(".add_jump").fadeOut('fast',function(){#}
-{#                                $('#show_count').html(response_data.cart_num);#}
-{#                            });#}
-{#                    });#}
-{##}
-{#                } else {#}
-{#                    // 其他错误信息，alert展示#}
-{#                    alert(response_data.message);#}
-{#                }#}
-{#            }, "json");#}
+                      if (0 == response_data.code) {
+                    // 添加到购物车成功动画#}
+//{#                    $(".add_jump").css({'left':$add_y+80,'top':$add_x+10,'display':'block'});#}
+
+                    $(".add_jump").stop().animate({
+                        'left': $to_y+7,
+                        'top': $to_x+7},
+                        "fast", function() {
+                            $(".add_jump").fadeOut('fast',function()
+                                $('#show_count').html(response_data.cart_num);
+                            });
+                    });
+
+                } else {
+                    // 其他错误信息，alert展示#}
+                    alert(response_data.message);
+                }
+            }, "json");
         });
         $("#add").click(function(){
             var num_show = $("#num_show").val();

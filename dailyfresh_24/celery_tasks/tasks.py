@@ -65,7 +65,7 @@ def generate_static_index_html():
 
     # 渲染模
 
-    path = os.path.join(settings.STATICFILES_DIRS)[0]
+    path = os.path.join(settings.STATICFILES_DIRS[0], 'static_index.html')
 
     with open(path, 'w') as file:
 

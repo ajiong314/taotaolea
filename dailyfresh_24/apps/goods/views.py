@@ -13,6 +13,7 @@ import json
 class BaseCartView(View):
 
     def get_cart_num(self,request):
+        cart_num = 0
         if request.user.is_authenticated():
         #     创建redis对象
             redis_conn = get_redis_connection("default")
@@ -64,14 +65,14 @@ class ListView(BaseCartView):
 
         # 查询商品分类category_id对应的SKU信息并且排序
         if sort == 'price':
-            skus = GoodsCategory.objects.filter(category=category).order_by('price')
+            skus = GoodsSKU.objects.filter(category=category).order_by('price')
 
         elif sort == 'hot':
-            skus = GoodsCategory.objects.filter(category=category).order_by('-sales')
+            skus = GoodsSKU.objects.filter(category=category).order_by('-sales')
 
         else:
 
-            skus = GoodsCategory.objects.filter(category=category)
+            skus = GoodsSKU.objects.filter(category=category)
             sort = 'default'
 
         # 查询购物车信
@@ -81,7 +82,7 @@ class ListView(BaseCartView):
         # 查询分页数据 paginator page
         # paginator = [GoodsSKU, GoodsSKU, GoodsSKU, GoodsSKU, GoodsSKU, ...]
         # paginator 的两个参数分别是 查寻出来的一个列表 ， 每一页展示几条内容
-        paginator = paginator(skus, 2)
+        paginator = Paginator(skus, 2)
 
         # 获取用户要看的那一页 page_skus = [GoodsSKU, GoodsSKU]
         # 根据从网页接受的参数判断用户要看那一夜
@@ -155,11 +156,19 @@ class DetailView(BaseCartView):
         cart_num = self.get_cart_num(request)
         # 如果是登录用户,读取购物车数据
         # 删除重复的sku_id
-        redis_conn.lrem('history_%s' % user_id, 0, sku_id)
-        # 记录浏览信息
-        redis_conn.lpush('history_%s' % user_id, sku_id)
-        # 最多保存五条记录
-        redis_conn.ltrim('history_%s' % user_id, 0, 4)
+        if request.user.is_authenticated():
+            # 创建连接到redis的对象
+            redis_conn = get_redis_connection('default')
+
+            # 调用hgetall(), 读取所有的购物车数据
+            user_id = request.user.id
+
+
+            redis_conn.lrem('history_%s' % user_id, 0, sku_id)
+            # 记录浏览信息
+            redis_conn.lpush('history_%s' % user_id, sku_id)
+            # 最多保存五条记录
+            redis_conn.ltrim('history_%s' % user_id, 0, 4)
 
         # 构造上下文
         context = {

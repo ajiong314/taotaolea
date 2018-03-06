@@ -4,7 +4,12 @@ from cart import views
 
 urlpatterns = [
 
-    url(r'^add$',views.AddCartViews.as_view(), name='add'),
+    url(r'^add$',views.AddCartView.as_view(), name='add'),
 
-    url(r'^$',views.AddCartViews.as_view(), name='info')
+    url(r'^$',views.AddCartView.as_view(), name='info'),
+
+    url(r'^update$',views.UpdateCartView.as_view(), name='update'),
+
+    url(r'^delete$',views.DeleteCartView.as_view(), name='delete')
 ]
+

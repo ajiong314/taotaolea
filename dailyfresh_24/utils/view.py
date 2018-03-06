@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 
+
 class LoginRequiredMixin(object):
 
     @classmethod
