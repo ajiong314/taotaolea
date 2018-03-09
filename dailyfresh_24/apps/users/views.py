@@ -197,7 +197,10 @@ class LoginView(View):
 
             response = redirect(reverse('goods:index'))
         else:
-            response = redirect(next)
+            if next == '/order/place':
+                response = redirect(reverse('cart:info'))
+            else:
+                response = redirect(next)
 
         response.delete_cookie('cart')
         return response

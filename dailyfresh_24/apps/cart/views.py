@@ -121,7 +121,7 @@ class UpdateCartView(View):
 
 class CartInfoView(View):
 
-    def post(self,request):
+    def get(self,request):
 
         if request.user.is_authenticated():
 
